@@ -1,15 +1,32 @@
 import socket
 import threading
 
-HOST = "localhost"
-PORT = 8002
+# Função para receber mensagens do servidor
+def receive_messages(client_socket):
+    while True:
+        try:
+            message = client_socket.recv(1024).decode('utf-8')
+            print(message)
+        except:
+            print("Conexão encerrada pelo servidor.")
+            client_socket.close()
+            break
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_ip = "localhost" 
+server_port = 8002
 
-sock.connect((HOST, PORT))
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((server_ip, server_port))
 
-sock.send(input("digite sua mensagem: ").encode())
+thread = threading.Thread(target=receive_messages, args=(client_socket,))
+thread.start()
 
-confirmacao = sock.recv(1024)
-if confirmacao == b"ok":
-    print("mensagem recebida")
+while True:
+    message = input()
+    client_socket.send(message.encode('utf-8'))
+    if message.lower() == 'sair':
+        print("Você saiu do chat.")
+        break
+
+client_socket.close()
+
